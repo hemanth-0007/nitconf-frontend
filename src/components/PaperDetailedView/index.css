@@ -1,0 +1,90 @@
+.component-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    height: 100vh;
+    width: 100vw;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+    /* border: 1px solid black; */
+
+    /* display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; */
+  }
+  body {
+    /* display: flex;
+    justify-content: center;
+    align-items: center; */
+    height: 100vh;
+    width: 100vw;
+    background-color: #f9f9f9;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 300;
+    margin: 0;
+  }
+  
+  .component-title {
+    /* font-size: 1.5rem; */
+    margin-bottom: 10px;
+  }
+  
+  .component-description {
+    font-size: 1.25rem;
+    color: #5e5e5e;
+    margin-bottom: 10px;
+  }
+  
+  .component-deadline,
+  .component-reviewers {
+    margin-bottom: 10px;
+    font-size: 1.25rem;
+
+  }
+  
+  .component-comments {
+    margin-top: 20px;
+    float: right;
+    /* border: 2px solid black; */
+
+  }
+  
+  .component-comments h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  
+  .component-comments ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .component-comments li {
+    margin-bottom: 5px;
+    font-size: 1.25rem;
+  }
+  
+  .component-tags-heading{
+    font-size: 1.25rem;
+  }
+  .tags-list{
+    list-style-type: number;
+  }
+  .component-tag{
+    font-size: 1.25rem;
+
+  }
+  .component-version{
+    font-size: 1.25rem;
+  }
+  .component-comment-list{
+    list-style-type:armenian;
+    padding: 0;
+  }
+  .component-comment-item{
+
+  }
+ 

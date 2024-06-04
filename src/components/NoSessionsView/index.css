@@ -1,0 +1,27 @@
+.no-sessions-view-container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* height: 100vh; */
+    /* width: 100vw; */
+    padding: 20px;
+    text-align: center;
+    /* background-color: #f5f5f5; */
+    /* border-radius: 10px; */
+    /* box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1); */
+}
+.no-sessions-view-img{
+    height: 350px;
+    width: auto;
+}
+.no-sessions-view-heading{
+
+}
+
+.no-sessions-view-description{
+    font-weight: 300;
+}
+.no-sessions-view-upload-btn{
+    font-weight: 500;
+}

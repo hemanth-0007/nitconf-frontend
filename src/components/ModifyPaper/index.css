@@ -1,0 +1,32 @@
+.input-label {
+    margin-bottom: 0px;
+    font-family: 'Roboto';
+    font-weight: bold;
+    font-size: 17px;
+    line-height: 16px;
+    color: #475569;
+  }
+  
+  .username-input-field {
+    font-size: 17px;
+    height: 40px;
+    border: 1px solid #d7dfe9;
+    background-color: #e2e8f0;
+    color: #64748b;
+    border-radius: 2px;
+    margin-top: 5px;
+    padding: 8px 16px 8px 16px;
+    outline: none;
+  }
+
+  .modify-paper-container{
+
+  }
+
+  .modify-paper-heading{
+
+  }
+
+  .submit-button{
+    
+  }

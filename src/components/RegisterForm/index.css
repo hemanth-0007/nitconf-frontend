@@ -1,0 +1,70 @@
+.register-form-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 90%;
+    max-width: 1110px;
+    margin: auto;
+}
+.register-main-heading{
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: black;
+}
+.register{
+  font-family: 'Roboto';
+  color: blue;
+  font-size: 18px;
+  line-height: 16px;
+  color: #64748b;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  border: none;
+  outline: none;
+  
+}
+  
+.register-new{
+  font-weight: bold;
+  cursor: pointer;
+  color: black;
+}
+    
+.input-label {
+  margin-bottom: 0px;
+  font-family: 'Roboto';
+  font-weight: bold;
+  font-size: 13.75px;
+  line-height: 16px;
+  color: #475569;
+  margin-top: 5px;
+  margin-bottom: 5px;
+
+}
+
+.username-input-field{
+  font-family: "Roboto";
+  font-size: 15px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.footer-text{
+  font-family: 'Roboto';
+  font-size: 17px;
+  line-height: 16px;
+  color: #64748b;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  border: none;
+  outline: none;
+  text-align: center;
+}
+.span-login{
+  font-weight: bold;
+  cursor: pointer;
+  color: black;
+}

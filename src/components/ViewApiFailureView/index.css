@@ -1,0 +1,18 @@
+.view-status-failure-view{
+
+}
+
+.failed-image{
+    width: 500px;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+    margin-top: 50px;
+}
+
+.failed-view-text{
+    text-align: center;
+    font-size: 30px;
+    font-weight: bold;
+    margin: 20px;
+}
