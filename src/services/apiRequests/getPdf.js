@@ -4,7 +4,7 @@ const fetchPdf = async (paperId) => {
   try {
     const jwtToken = Cookies.get("jwt_token");
     console.log(paperId);
-    const url = `http://localhost:8082/api/docs/get-latest/${paperId}`;
+    const url = `${process.env.REACT_APP_API_URL}/api/docs/get-latest/${paperId}`;
     const options = {
       method: "GET",
       headers: {

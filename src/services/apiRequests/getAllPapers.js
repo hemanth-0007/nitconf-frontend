@@ -3,7 +3,7 @@ import Cookies from "js-cookie";
 const getAllPapersApiRequest = async () => {
   try {
     const jwtToken = Cookies.get("jwt_token");
-    const url = "http://localhost:8082/api/papers/all/";
+    const url = `${process.env.REACT_APP_API_URL}/api/papers/all/`;
     const options = {
       method: "GET",
       headers: {

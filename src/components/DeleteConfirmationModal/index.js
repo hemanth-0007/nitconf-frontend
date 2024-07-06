@@ -1,36 +1,45 @@
-import React, { useState } from 'react';
-import { Button, Modal } from 'react-bootstrap';
+import React, { useEffect, useState } from "react";
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import Modal from '@mui/material/Modal';
 
-const DeleteConfirmationModal = ({ onDelete }) => {
-  const [show, setShow] = useState(false);
 
-  const handleDelete = () => {
-    onDelete();
+const DeleteConfirmationModal = ({ id, onDelete , show, handleClose}) => {
+ 
+
+  const handleDelete = async () => {
+    await onDelete(id);
     handleClose();
   };
+  const style = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+  };
 
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
+ 
   return (
     <>
-      <Button variant="danger" onClick={handleShow}>
-        Delete
-      </Button>
-
-      <Modal show={show} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>Are you sure you want to delete?</Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDelete}>
-            Delete
-          </Button>
-        </Modal.Footer>
+      <Modal
+        open={show}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Do you want to delete?
+          </Typography>
+          <Button className="bg-black text-white p-3 rounded-md " onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleDelete}>Delete</Button>
+        </Box>
       </Modal>
     </>
   );

@@ -1,18 +1,36 @@
-import './index.css';
-import Header from '../Header';
-import EmptyNotificationView from '../EmptyNotificationView';
-
-const Notification = (props) => {
-
-
+/* eslint-disable react/prop-types */
+import {
+    AiOutlineCheckCircle,
+    AiOutlineClose,
+    AiOutlineCloseCircle,
+    AiOutlineInfoCircle,
+    AiOutlineWarning,
+  } from "react-icons/ai";
+  import "./index.css";
+  
+  const iconStyles = {marginRight: "10px"};
+  const icons = {
+    success: <AiOutlineCheckCircle style={iconStyles} />,
+    info: <AiOutlineInfoCircle style={iconStyles} />,
+    warning: <AiOutlineWarning style={iconStyles} />,
+    error: <AiOutlineCloseCircle style={iconStyles} />,
+  };
+  
+  const Notification = ({type = "info", message, onClose = () => {}}) => {
     return (
-        <div className="notification-container">
-            <Header/>
-            {/* <h1 className="notification-main-heading text-center m-5">Notification</h1> */}
-             <EmptyNotificationView/>
-        </div>
-
+      <div className={`notification ${type}`}>
+        {/* icon */}
+        {icons[type]}
+        {/* message */}
+        {message}
+        {/* close button */}
+        <AiOutlineClose
+          color="white"
+          className="closeBtn"
+          onClick={() => onClose()}
+        />
+      </div>
     );
-}
-
-export default Notification;
+  };
+  
+  export default Notification;

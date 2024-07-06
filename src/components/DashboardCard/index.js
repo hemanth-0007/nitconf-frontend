@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Modal } from "react-bootstrap";
 import { useHistory } from "react-router-dom";
 import pdfIcon from "../../assets/pdfIcon.jpg";
+import DeleteConfirmationModal from "../DeleteConfirmationModal";
 
 const DashboardCard = (props) => {
   // useHistory hook
@@ -14,10 +15,16 @@ const DashboardCard = (props) => {
 
   const [show, setShow] = useState(false);
 
-  const handleDelete = () => {
-    console.log("Delete triggered");
-    onDeleteSession(id);
-    handleClose();
+  const handleDelete = async (cur_id) => {
+    
+    try {
+      console.log("Delete triggered");
+      await onDeleteSession(cur_id);
+      handleClose();
+    } catch (error) {
+      console.log(`Error in deleting the paper : ${error.message}`);
+    }
+
   };
 
   const handleClose = () => setShow(false);
@@ -25,34 +32,7 @@ const DashboardCard = (props) => {
 
   const onClickNavigate = () => history.push(`/dashboard/${id}`);
 
-  const renderDeleteConfirmationModal = () => {
-    return (
-      <>
-        <Modal show={show} onHide={handleClose}>
-          <Modal.Header closeButton>
-            <Modal.Title>Confirm Delete</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>Are you sure you want to delete?</Modal.Body>
-          <Modal.Footer>
-            <Button
-              className="bg-slate-700"
-              variant="secondary"
-              onClick={handleClose}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="bg-red-600"
-              variant="danger"
-              onClick={handleDelete}
-            >
-              Delete
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      </>
-    );
-  };
+ 
   return (
     <>
       <li className="card m-3">
@@ -62,14 +42,16 @@ const DashboardCard = (props) => {
           onClick={onClickNavigate}
           className="card-image"
         />
-        <div className="flex flex-col justify-center items-center">
+        <div className="flex flex-row justify-evenly items-center">
           <h2 onClick={onClickNavigate} className="card-title">
             {title}
           </h2>
-          <MdDelete className="size-5" onClick={handleShow} />
+          <MdDelete className="size-5 mb-2
+                                hover:text-red-600
+                                hover:bg-slate-300 rounded-md" onClick={handleShow} />
         </div>
       </li>
-      {renderDeleteConfirmationModal()}
+     <DeleteConfirmationModal id = {id} onDelete={handleDelete} show = {show} handleClose={handleClose} />
     </>
   );
 };

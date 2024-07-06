@@ -2,15 +2,27 @@ import "./index.css";
 import { useState } from "react";
 import Cookies from "js-cookie";
 import { Redirect } from "react-router-dom";
-
+import { useAuth } from "../../context/AuthContext";
+import OtpInput from "../OtpInput";
+import verifyOtp from "../../services/apiRequests/verifyOtp";
+import sendOtp from "../../services/apiRequests/sendOtp";
+import useNotification from "../../hooks/use-notification";
 
 const LoginForm = (props) => {
+  const { login } = useAuth();
+  const {NotificationComponent, triggerNotification} =
+  useNotification("top-right");
+
+  const [token, setToken] = useState("");
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     showSubmitError: false,
     errorMsg: "",
   });
+
+  const [showOtpInput, setShowOtpInput] = useState(false);
 
   const handleInputChange = (event) => {
     const target = event.target;
@@ -26,17 +38,9 @@ const LoginForm = (props) => {
       showSubmitError: true,
       errorMsg,
     }));
-  }
-
-  const onSubmitSuccess = (jwtToken) => {
-    const { history } = props;
-    alert("Login Success");
-    Cookies.set("jwt_token", jwtToken, {
-      expires: 30,
-      path: "/",
-    });
-    history.replace("/");
   };
+
+  
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -44,7 +48,8 @@ const LoginForm = (props) => {
       const { email, password } = formData;
       const userDetails = { email, password };
       console.log(userDetails);
-      const url = "http://localhost:8082/api/auth/login/";
+      console.log(process.env.REACT_APP_API_URL);
+      const url = `${process.env.REACT_APP_API_URL}/api/auth/login/`;
       const options = {
         method: "POST",
         headers: {
@@ -54,14 +59,23 @@ const LoginForm = (props) => {
       };
       const response = await fetch(url, options);
       console.log(response);
-      if (response.ok === true){
+      if (response.ok === true) {
         const data = await response.json();
         console.log(data);
-        const {token} = data;
-        console.log(token);
-        onSubmitSuccess(token);
-      }
-      else {
+        const { token } = data;
+        // console.log(token);
+        // using the auth context
+        // login(token);
+        // onSubmitSuccess(token);
+        setToken(token);
+        setShowOtpInput(true);
+        console.log(email);
+        const isOtpSent = await sendOtp(email);
+        if(isOtpSent === false) return alert("OTP not sent Please try again later");
+        alert("OTP sent successfully");
+
+
+      } else {
         onSubmitFailure("Invalid Username or Password error occurred");
       }
     } catch (error) {
@@ -112,38 +126,91 @@ const LoginForm = (props) => {
     );
   };
 
+  const renderLoginForm = () => {
+    const { showSubmitError, errorMsg } = formData;
+    return (
+      <form className="form-container" onSubmit={handleSubmit}>
+        <h1 className="login-heading">Author Login</h1>
+        <div className="input-container">{renderUsernameField()}</div>
+        <div className="input-container">{renderPasswordField()}</div>
+        <button type="submit" className="login-button">
+          Login
+        </button>
+        {showSubmitError && <p className="error-message">*{errorMsg}</p>}
+        <p className="register">
+          New User ?{" "}
+          <span onClick={onClickRegister} className="register register-new">
+            Register Here
+          </span>
+        </p>
+      </form>
+    );
+  };
 
+  const renderOtpForm = () => {
+    return <div className="rounded-lg shadow-lg p-5">
+      <p className="text-center font-semibold text-lg ">Please Enter the OTP sent to <hr/>{formData.email}</p>
+      <OtpInput length={6} onOtpSubmit={onOtpSubmit} />
+    </div>;
+  };
 
+  const onOtpSubmit = async (otp) => {
+    console.log(otp);
+    const { email } = formData;
+    console.log(email, otp);
+    // this is an async function api call to backend
+    try {
+      const [status, data] = await verifyOtp(email, otp);
+      const { message } = data;
+      if(status === false){
+        triggerNotification({
+          type: "error",
+          message: message,
+          duration: 3000,
+          animation: "pop",
+        })
+        return;
+      }
+      triggerNotification({
+        type: "success",
+        message: message,
+        duration: 3000,
+        animation: "pop",
+      })
+      const { history } = props;
+      Cookies.set("jwt_token", token, {
+        expires: 30,
+        path: "/",
+      });
+      login(token);
+      history.replace("/");
+      return;
+    } catch (error) {
+      triggerNotification({
+        type: "error",
+        message: error.message,
+        duration: 3000,
+        animation: "pop",
+      })
+      console.log("Error while verifying OTP", error.message);
+      return;
+    }
+  };
 
+  //  Check if the user is already logged in
   const jwtToken = Cookies.get("jwt_token");
   if (jwtToken !== undefined) return <Redirect to="/" />;
-  const { showSubmitError, errorMsg } = formData;
+
   return (
     <div className="login-form-container">
-        <img
-          src="https://res.cloudinary.com/drvnhpatd/image/upload/v1705997469/Ecological_press_conference_member_speaking_on_stage_w7bnit.jpg"
-          className="login-image"
-          alt="website login"
-        />
-        <form className="form-container" onSubmit={handleSubmit}>
-          <h1 className="login-heading">Author Login</h1>
-          <div className="input-container">{renderUsernameField()}</div>
-          <div className="input-container">{renderPasswordField()}</div>
-          <button type="submit" className="login-button">
-            Login
-          </button>
-          {showSubmitError && <p className="error-message">*{errorMsg}</p>}
-          <p className="register">
-            New User ?{" "}
-            <span
-              onClick={onClickRegister}
-              className="register register-new"
-            >
-              Register Here
-            </span>
-          </p>
-        </form>
-      </div>
+       {NotificationComponent}
+      <img
+        src="https://res.cloudinary.com/drvnhpatd/image/upload/v1705997469/Ecological_press_conference_member_speaking_on_stage_w7bnit.jpg"
+        className="login-image"
+        alt="website login"
+      />
+      {showOtpInput ? renderOtpForm() : renderLoginForm()}
+    </div>
   );
 };
 

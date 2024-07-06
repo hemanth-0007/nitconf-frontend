@@ -1,37 +1,26 @@
 import "./index.css";
-// react hooks
 import { useState, useEffect } from "react";
-
-// components
-import Header from "../Header";
 import ViewApiFailureView from "../ViewApiFailureView";
-
-// loader spinner
-import Loader from "react-loader-spinner";
-import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
-
-// utils
+import LoadingView from "../LoadingView";
 import toDateTimeFormat from "../../utils/toDateTimeFormat";
+import apiConstants from "../../constants/apiConstants";
 
-// constants
-import apiResponseStatusConstants from "../../constants/apiResponseStatusConstants";
-
-// services api requests
 import getAllPapersApiRequest from "../../services/apiRequests/getAllPapers";
+import NoSessionsView from "../NoSessionsView";
 
 
 const ViewStatus = () => {
   const [apiResponse, setApiResponse] = useState({
-    apiResponseStatus: apiResponseStatusConstants.initial,
+    apiResponseStatus: apiConstants.initial,
     papers: null,
     errorMsg: null,
   });
 
   useEffect(() => {
-    const getSessions = async () => {
+    const getPapers = async () => {
       setApiResponse((prevApiResponse) => ({
         ...prevApiResponse,
-        apiResponseStatus: apiResponseStatusConstants.progess,
+        apiResponseStatus: apiConstants.progess,
       }));
       try {
         const response = await getAllPapersApiRequest();
@@ -40,62 +29,62 @@ const ViewStatus = () => {
           // console.log(data);
           // alert('Sessions fetched successfully');
           setApiResponse({
-            apiResponseStatus: apiResponseStatusConstants.success,
+            apiResponseStatus: apiConstants.success,
             papers: data,
             errorMsg: null,
           });
         } else {
           setApiResponse({
-            apiResponseStatus: apiResponseStatusConstants.failure,
+            apiResponseStatus: apiConstants.failure,
             papers: null,
-            errorMsg: "Error fetching sessions",
+            errorMsg: "Error fetching Papers",
           });
-          // alert('Error fetching sessions');
+         
           return;
         }
       } catch (error) {
         setApiResponse({
-          apiResponseStatus: apiResponseStatusConstants.failure,
+          apiResponseStatus: apiConstants.failure,
           papers: null,
           errorMsg: `Error fetching sessions: ${error.message}`,
         });
       }
     };
-    getSessions();
+    getPapers();
   }, []);
 
-  const renderViewStatusLoadingView = () => {
-    return (
-      <div className="loader-container">
-        <Loader type="ThreeDots" color="#00BFFF" height={80} width={80} />
-      </div>
-    );
-  };
+  const renderViewStatusLoadingView = () =>  <LoadingView />;
 
   const renderViewStatusSuccessView = () => {
-    return (
-      <div className="view-status-container">
-        <h1 className="view-status-main-heading text-center m-5">
-          View Status
-        </h1>
-        <div>
-          <table className="table-container">
-            <tr>
-              <th>Title</th>
-              <th>Status</th>
-              <th>Created At</th>
-            </tr>
-            {apiResponse.papers.map((paper) => (
-              <tr key={paper._id}>
-                <td>{paper.title}</td>
-                <td>Pending</td>
-                <td>{toDateTimeFormat(paper.createdAt)}</td>
+    const { papers } = apiResponse;
+    const isPapersAvailable = papers.length > 0;
+    if(isPapersAvailable) {
+      return (
+        <div className="view-status-container">
+          <h1 className="view-status-main-heading text-center m-5">
+            View Status
+          </h1>
+          <div>
+            <table className="table-container">
+              <tr>
+                <th>Title</th>
+                <th>Status</th>
+                <th>Created At</th>
               </tr>
-            ))}
-          </table>
-        </div>
-      </div>
-    );
+              {apiResponse.papers.map((paper) => (
+                <tr key={paper._id}>
+                  <td>{paper.title}</td>
+                  <td>Pending</td>
+                  <td>{toDateTimeFormat(paper.createdAt)}</td>
+                </tr>
+              ))}
+            </table>
+          </div>
+        </div>);
+    }
+    else {
+      return <NoSessionsView />;
+    }
   };
 
   const renderViewStatusFailureView = () => <ViewApiFailureView />;
@@ -103,11 +92,11 @@ const ViewStatus = () => {
   const renderViewStatus = () => {
     const { apiResponseStatus } = apiResponse;
         switch (apiResponseStatus) {
-        case apiResponseStatusConstants.progess:
+        case apiConstants.progess:
             return renderViewStatusLoadingView();
-        case apiResponseStatusConstants.success:
+        case apiConstants.success:
             return renderViewStatusSuccessView();
-        case apiResponseStatusConstants.failure:
+        case apiConstants.failure:
             return renderViewStatusFailureView();
         default:
             return null;
@@ -116,7 +105,6 @@ const ViewStatus = () => {
 
   return (
     <>
-      <Header />
       {renderViewStatus()}
     </>
   );

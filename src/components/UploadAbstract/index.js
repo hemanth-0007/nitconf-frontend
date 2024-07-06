@@ -1,260 +1,215 @@
 import React, { useEffect, useState } from "react";
 import "./index.css"; // Import CSS file for custom styling
-import Header from "../Header";
-import Cookies from "js-cookie";
 import TagCard from "../TagCard";
 import { v4 as uuidv4 } from "uuid";
+import deletePaper from "../../services/apiRequests/deletePaper";
+import uploadPaper from "../../services/apiRequests/uplaodPaper";
+import sendPdf from "../../services/apiRequests/sendPdf";
 
-import statusOptions from "../../constants/statusOptions";
+import useNotification from "../../hooks/use-notification";
 
-import getAllTags from "../../services/apiRequests/getAllTags";
+import { object, string, array, mixed } from "yup";
 
 const UploadAbstract = () => {
-  // useState hooks
+
+  const {NotificationComponent, triggerNotification} =
+  useNotification("top-right");
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     tags: [],
-    selectedTag: "",
-    selectedTagId : "",
     newTag: "",
     file: null,
   });
 
-  const [tagsList, setTagsList] = useState([]);
-  const [titleError, setTitleError] = useState("");
-  const [descriptionError, setDescriptionError] = useState("");
-  const [formError, setFormError] = useState("");
-  const [isCreateTag, setIsCreateTag] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // useEffect hook to fetch tags list from backend
-  useEffect(() => {
-    const setData = async () => {
-      const data = await getAllTags();
-      if (data === undefined || data === null)
-        return console.log("Error in fetching tags");
-      setTagsList(data);
-      if (data.length > 0) {
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          selectedTag: data[0].title,
-          selectedTagId: data[0]._id,
-        }));
-      }
-    };
-    setData();
-  }, []);
+  const validateForm = object({
+    title: string()
+      .required("Title is required")
+      .min(5, "Title must be at least 5 characters")
+      .max(50, "Title cannot exceed 50 characters")
+      .matches(/^[a-zA-Z\s]*$/, "Title must be contain only alphabets"),
+    description: string()
+      .required("Description is required")
+      .min(10, "Description must be at least 10 characters")
+      .max(300, "Description cannot exceed 300 characters")
+      .matches(/^[a-zA-Z\s]*$/, "Description must be contain only alphabets"),
+    tags: array()
+      .min(1, "Minimum one tag is  required")
+      .max(5, "Maximum 5 tags are allowed"),
+    file: mixed().required("File is required"),
+  });
 
-  // handleDescChange function to handle description change
-  const handleDescChange = (event) => {
-    const { value } = event.target;
-    if (value.length > 300)
-      setDescriptionError("Description cannot exceed 300 characters.");
-    else {
-      setDescriptionError("");
-      setFormData((prevFormData) => ({ ...prevFormData, description: value }));
-    }
-  };
-  // handleTitleChange function to handle title change
-  const handleTitleChange = (event) => {
-    const { value } = event.target;
-    if (value.length > 50) setTitleError("Title cannot exceed 50 characters.");
-    else {
-      setTitleError("");
-      setFormData((prevFormData) => ({ ...prevFormData, title: value }));
-    }
-  };
+  const validateNewTag = object({
+    newTag: string()
+      .required("Tag cannot be empty")
+      .min(5, "Tag must be at least 5 characters")
+      .max(30, "Tag cannot exceed 30 characters")
+      .matches(/^[a-zA-Z\s]*$/, "Tag must be contain only alphabets"),
+  });
 
   // handleFileChange function to handle file change
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    console.log(file);
-    if (file.type !== "application/pdf") {
-      alert("Please upload a PDF file");
+    // console.log(file);
+    // get the size of the file
+    const fileSize = file.size / 1024 / 1024; // in MB
+    if (fileSize > 5) {
+      setErrors((prev) => ({
+        ...prev,
+        file: "File size should be less than 5MB",
+      }));
       return;
     }
-    setFormData((prevFormData) => ({ ...prevFormData, file: file }));
-  };
-
-  // handleTagChange function to handle tag change
-  const handleTagChange = (e) => {
-    setFormData((prevFormData) => ({ ...prevFormData, selectedTag:e.target.value , selectedTagId: e.target.key}));
-  };
-
-  // onClickAddTag function to handle adding tags to the user's selected tags list
-  const onClickAddTag = () => {
-    const { selectedTag, tags , selectedTagId} = formData;
-    const newTag = {
-      id: selectedTagId,
-      title: selectedTag,
-    };
-    let isTagInTagsList = tags.some((tag) => tag.title === selectedTag);
-    if (selectedTag !== "" && !isTagInTagsList) {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        tags: [...prevFormData.tags, newTag],
-      }));
+    if (file.type !== "application/pdf") {
+      setErrors((prev) => ({ ...prev, file: "Please upload a pdf file" }));
+      return;
     }
+    setErrors((prev) => ({ ...prev, file: "" }));
+    setFormData((prev) => ({ ...prev, file: file }));
   };
 
   // handleSubmit function to handle form submission and send the data to the backend
+
   const handleSubmit = async (event) => {
+    console.log("submitting the form");
     event.preventDefault();
-    const { title, description, tags } = formData;
-    if (title === "" || tags.length === 0 || description === "") {
-      setFormError("Please enter all the feilds");
+    // set the isSubmit to true
+
+    // get the form data
+    const { title, description, tags, file } = formData;
+    // validate the form with yup
+    try {
+      await validateForm.validate(formData, { abortEarly: false });
+      console.log("Form is valid");
+    } catch (error) {
+      const newErrors = {};
+      console.log(error.inner);
+      error.inner.forEach((err) => {
+        newErrors[err.path] = err.message;
+      });
+      setErrors(newErrors);
       return;
     }
-    const updatedTags = tags.map((tag) => tag.id);
+
+    const updatedTags = tags.map((tag) => tag.title);
     const paperDetails = {
-      title: title,
-      description: description,
-      status: statusOptions.pending,
+      title,
+      description,
       tags: updatedTags,
     };
     console.log(paperDetails);
+    const [status, data] = await uploadPaper(paperDetails);
+    if (!status) {
+      console.log(data);
+      return;
+    }
+    const paperId = data._id;
+    // console.log(paperId);
+    const isPdfUploaded = await sendPdf(file, paperId, "Initial Upload");
+    if (!isPdfUploaded) {
+      console.log("Error in uploading the pdf");
+      const [isDeleted, data] = await deletePaper(paperId);
+      const {message} = data;
+      if (!isDeleted) {
+        console.log(message);
+        console.log("Error in deleting the paper");
+        return;
+      }
+      console.log(message);
+      console.log("Paper deleted successfully");
+      return;
+    }
+    // clear the form data
     setFormData({
       title: "",
       description: "",
       tags: [],
-      selectedTag: "",
+      newTag: "",
+      file: null,
     });
-    const jwtToken = Cookies.get("jwt_token");
-    const url = "http://localhost:8082/api/papers/new-paper/";
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${jwtToken}`,
-      },
-      body: JSON.stringify(paperDetails),
-    };
-    try {
-      const response = await fetch(url, options);
-      console.log(response);
-      const data = await response.json();
-      console.log(data);
-      const paperId = data._id;
-      if (response.ok) {
-        alert("Paper submitted successfully");
-        await sendPdf(paperId);
-        return;
-      } else {
-        alert("Error in submitting the paper");
-        return;
-      }
-    } catch (error) {
-      console.log("err msg : ", error.message);
-    }
+    setErrors({});
+    triggerNotification({
+      type: "success",
+      message: `Paper submitted successfully.`,
+      duration: 3000,
+      animation: "pop",
+    })
+    return;
   };
 
-  const sendPdf = async (paperId) => {
-    const { file } = formData;
-    const pdfData = new FormData();
-    pdfData.append("pdf-file", file);
-    const jwtToken = Cookies.get("jwt_token");
-    const url = `http://localhost:8082/api/docs/upload/${paperId}`;
-    const options = {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-      },
-      body: pdfData,
-    };
-    try {
-      const response = await fetch(url, options);
-      console.log("upload pdf response object : ", response);
-      // const data = await response.json();
-      // console.log(data);
-      if (response.ok) {
-        alert("PDF uploaded successfully");
-        return;
-      } else {
-        alert("Error in uploading the PDF");
-        return;
-      }
-    } catch (error) {
-      console.log("err msg : ", error.message);
-    }
-  };
   // onDeleteTag function to handle deleting tags from the user's selected tags list
   const onDeleteTag = (id) => {
     const { tags } = formData;
     const updatedTags = tags.filter((tag) => tag.id !== id);
-    setFormData((prevFormData) => ({ ...prevFormData, tags: updatedTags }));
+    setFormData((prev) => ({ ...prev, tags: updatedTags }));
   };
 
-  const onClickCreateTag = () => setIsCreateTag((prev) => !prev);
-
-  const onClickNewTagApi = async () => {
-    const { newTag } = formData;
-    setTagsList((prevTagsList) => [
-      ...prevTagsList,
-      { id: uuidv4(), title: newTag },
-    ]);
-    const jwtToken = Cookies.get("jwt_token");
-    const url = "http://localhost:8082/api/tags/add/";
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${jwtToken}`,
-      },
-      body: JSON.stringify({ title: newTag }),
-    };
+  const onClickAddTag = async () => {
+    const { newTag, tags } = formData;
     try {
-      const response = await fetch(url, options);
-      console.log(response);
-      const data = await response.json();
-      console.log(data);
-      if (response.ok) {
-        alert("Tag created successfully");
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          newTag: "",
-        }));
-        return;
-      } else {
-        alert("Error in creating the tag");
-        return;
-      }
+      await validateNewTag.validate({ newTag }, { abortEarly: false });
+      setErrors((prev) => ({ ...prev, newTag: "" }));
     } catch (error) {
-      console.log("err msg : ", error.message);
+      setErrors((prev) => ({ ...prev, newTag: error.inner[0].message }));
+      return;
     }
+    const MAX_TAGS = 2;
+    if(tags.length >= MAX_TAGS){
+      triggerNotification({
+        type: "error",
+        message: `Tags cannot be more than ${MAX_TAGS}.`,
+        duration: 3000,
+        animation: "pop",
+      })
+      // setErrors( prev => ({ ...prev, newTag: `Tags cannot be more than ${MAX_TAGS}.`}));
+      return;
+    }
+    // add the new tag to the tags list
+    const updatedTags = [...tags, { id: uuidv4(), title: newTag }];
+
+    setFormData((prev) => ({ ...prev, tags: updatedTags, newTag: "" }));
   };
+
+  // This section is for the Render functions
 
   const renderTitleField = () => {
-    const { title } = formData;
     return (
       <>
-        <label className="input-label" htmlFor="email">
-          Title
+        <label className="input-label" htmlFor="title">
+          Title*
         </label>
         <input
           type="text"
-          id="email"
-          className="username-input-field"
-          value={title}
-          onChange={handleTitleChange}
+          id="title"
+          className="username-input-field text-md font-sans"
+          value={formData.title}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, title: e.target.value }))
+          }
           placeholder="Title"
+          autoComplete={false}
         />
       </>
     );
   };
 
   const renderDescField = () => {
-    const { description } = formData;
     return (
       <>
-        <label className="input-label" htmlFor="email">
-          Description
+        <label className="input-label" htmlFor="description">
+          Description*
         </label>
         <input
           type="text"
-          id="email"
+          id="description"
           className="username-input-field"
-          value={description}
-          onChange={handleDescChange}
+          value={formData.description}
+          onChange={(e) =>
+            setFormData((prev) => ({ ...prev, description: e.target.value }))
+          }
           placeholder="Description"
         />
       </>
@@ -265,14 +220,14 @@ const UploadAbstract = () => {
     return (
       <>
         <label className="input-label" htmlFor="pdf-file">
-          Upload PDF*:
+          upload (PDF)*:
         </label>
         <input
           type="file"
           id="pdf-file"
           name="pdf-file"
           accept=".pdf"
-          className="username-input-field"
+          className="username-input-field pb-3 pt-2 pl-2"
           onChange={handleFileChange}
           placeholder="Upload PDF"
         />
@@ -281,33 +236,30 @@ const UploadAbstract = () => {
   };
 
   const renderCreateTagField = () => {
-    const { newTag } = formData;
     return (
-      <div className="create-tag-container">
-        <div className="mt-3">
-          {/* <label className="input-label" htmlFor="create-tag">
-              New Tag
-            </label> */}
+      <div className="mt-3 mb-3 flex flex-row justify-between">
+        <div className="flex flex-col justify-start">
+          <label className="input-label" htmlFor="create-tag">
+            Add Tag
+          </label>
           <input
             type="text"
             id="create-tag"
             className="username-input-field"
-            value={newTag}
+            value={formData.newTag}
             onChange={(e) =>
-              setFormData((prevFormData) => ({
-                ...prevFormData,
-                newTag: e.target.value,
-              }))
+              setFormData((prev) => ({ ...prev, newTag: e.target.value }))
             }
-            placeholder="New Tag"
+            placeholder="Add Tag"
           />
         </div>
         <button
           type="button"
-          className="btn btn-primary mt-3 ml-3 font-bold bg-sky-600"
-          onClick={onClickNewTagApi}
+          className="bg-blue-600 font-semibold mr-2 rounded-full px-4 py-2 text-white 
+                      hover:bg-blue-700 transition-all duration-300 ease-in-out"
+          onClick={onClickAddTag}
         >
-          Create Tag
+          Add Tag
         </button>
       </div>
     );
@@ -315,76 +267,56 @@ const UploadAbstract = () => {
 
   return (
     <>
-      <Header />
+      
+      {NotificationComponent}
+      <h1 className="fw-900 text-center text-3xl font-bold cursor-not-allowed">
+        Submit Paper
+      </h1>
       <form className="my-form" onSubmit={handleSubmit}>
-        <h1 className="fw-900 text-3xl font-bold cursor-not-allowed">
-          Submit Paper
-        </h1>
         <div className="input-container">
           {renderTitleField()}
-          {titleError && <p className="text-danger">{titleError}</p>}
+          {errors.title && <p className="text-red-600 font-sans text-lg">*{errors.title}</p>}
+
         </div>
 
         <div className="input-container">
           {renderDescField()}
-          {descriptionError && (
-            <p className="text-danger">{descriptionError}</p>
-          )}
+          {errors.description && <p className="text-red-600 font-sans text-lg">*{errors.description}</p>}
+
         </div>
 
-        <div className="input-container">{renderPdfField()}</div>
+        <div className="input-container">
+          {renderPdfField()}
+          {errors.file && <p className="text-red-600 font-sans text-lg">*{errors.file}</p>}
+        </div>
 
-        <div className="mb-3 d-flex flex-column justify-content-space-center align-class">
-          <label className="form-label">Add Tags :</label>
-          {tagsList.length > 0 ? (
-            <select
-              className="form-control"
-              name="selectedTag"
-              value={formData.selectedTag}
-              onChange={handleTagChange}
-            >
-              {tagsList.map((tag) => (
-                <option key={tag._id} value={tag.title}>
-                  {tag.title}
-                </option>
-              ))}
-            </select>
-          ) : (
-            // Can add some loader here
-            <p>Loading the Tags</p>
-          )}
-
+        {/* This is create tag section */}
+        {/* <div className="mb-3 d-flex flex-column justify-content-space-center align-class">
           <div className="flex flex-row justify-center">
-            <button
-              type="button"
-              className="btn btn-outline-primary mt-3"
-              onClick={onClickAddTag}
-            >
-              Add
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline-primary mt-3 ml-3"
-              onClick={onClickCreateTag}
-            >
-              {isCreateTag ? "Close" : "Create Tag"}
-            </button>
+            {renderCreateTagField()}
           </div>
-          {isCreateTag && renderCreateTagField()}
+        </div> */}
+        <div className="input-container">
+          {renderCreateTagField()}
+          {errors.newTag && <p className="text-red-600 font-sans text-lg">*{errors.newTag}</p>}
+
         </div>
+
         {/* displaying the selected tags */}
         <ul className="tags-list-group">
           {formData.tags.map((tag) => (
-            <TagCard deleteTag={onDeleteTag} key={tag.id} tag={tag} />
+            <TagCard key={tag.id} tag={tag} deleteTag={onDeleteTag} />
           ))}
         </ul>
 
-        <button type="submit" className="btn btn-primary bg-sky-600 font-bold ">
-          {" "}
-          Submit{" "}
+        <button
+          type="submit"
+          className="bg-blue-600 font-semibold mr-2 rounded-full px-4 py-2 text-white 
+                      hover:-translate-y-1 transition-all duration-300 ease-in-out"
+        >
+          Submit
         </button>
-        <p className="text-rose-700">* feilds are compulsory </p>
-        {formError && <p className="error-msg">{formError}</p>}
+        <p className="text-red-600 font-sans text-lg">*feilds are compulsory </p>
       </form>
     </>
   );

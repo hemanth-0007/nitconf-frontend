@@ -73,7 +73,7 @@ const ModifyPaper = (props) => {
           className="username-input-field"
           onChange={handleFileChange}
           placeholder="Upload PDF"
-          required = "required"
+          required="required"
         />
       </div>
     );
@@ -92,9 +92,13 @@ const ModifyPaper = (props) => {
       <h3 className="text-2xl font-semibold pt-4">Modify Paper</h3>
       <div className="flex flex-col justify-center items-start">
         {renderPdfField()}
-        <Button variant="primary" type="submit" className="bg-blue-600 font-semibold mt-3">
+        <button
+          variant="primary"
+          type="submit"
+          className="bg-blue-600 font-semibold mr-2 rounded-full px-4 py-2 text-white hover:-translate-y-1 transition-all duration-300 ease-in-out"
+        >
           Submit
-        </Button>
+        </button>
       </div>
       {renderLoader()}
       <p>{pdfError}</p>

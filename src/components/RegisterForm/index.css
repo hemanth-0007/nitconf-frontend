@@ -1,12 +1,12 @@
 .register-form-container{
-    display: flex;
+    /* display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
     width: 90%;
-    max-width: 1110px;
-    margin: auto;
+     max-width: 1110px;  
+    margin: auto; */
 }
 .register-main-heading{
     font-size: 2.5rem;

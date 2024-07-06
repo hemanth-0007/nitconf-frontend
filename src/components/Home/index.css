@@ -21,10 +21,6 @@
     border-radius:20px;
     background-color:transparent;
     text-align:center;
-    ;
-
-   
-
 }
 .component_list {
     margin-left:20px;
@@ -199,6 +195,8 @@
     border: none;
     padding-top: 12px;
     padding-bottom: 12px;
+    padding-left: 3px;
+    padding-right: 3px;
     border-radius: 6px;
     background-color: #0967d2;
     margin-top: 20px;
