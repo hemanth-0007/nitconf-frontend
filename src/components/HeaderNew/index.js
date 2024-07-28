@@ -58,12 +58,14 @@ const HeaderNew = (props) => {
 
   const onClickLogout = async  () => {
       const user = JSON.parse(localStorage.getItem("user"));
-      console.log(user.email);
+    if(user)  {
+        console.log(user.email);
       const [isUnverified, data] = await unverifyUser(user.email);
       if(!isUnverified){
         console.log("Error in unverifying user");
         return;
       }
+    }
       Cookies.remove("jwt_token");
       localStorage.removeItem("user");
       logout();
