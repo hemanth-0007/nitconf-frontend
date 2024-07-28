@@ -1,5 +1,5 @@
 import "./index.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { Redirect } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -7,13 +7,16 @@ import OtpInput from "../OtpInput";
 import verifyOtp from "../../services/apiRequests/verifyOtp";
 import sendOtp from "../../services/apiRequests/sendOtp";
 import useNotification from "../../hooks/use-notification";
+import conferenceImage from "../../assets/conference-image.jpg";
+import { object, string, email } from "yup";
 
 const LoginForm = (props) => {
   const { login } = useAuth();
-  const {NotificationComponent, triggerNotification} =
-  useNotification("top-right");
+  const { NotificationComponent, triggerNotification } =
+    useNotification("top-right");
 
   const [token, setToken] = useState("");
+
 
   const [formData, setFormData] = useState({
     email: "",
@@ -22,7 +25,27 @@ const LoginForm = (props) => {
     errorMsg: "",
   });
 
+  const [errors, setErrors] = useState({});
+
   const [showOtpInput, setShowOtpInput] = useState(false);
+
+  useEffect(() => {
+    const focusInput = () => {
+      const emailElement = document.getElementById("email");
+      emailElement.focus();
+    };
+    focusInput();
+  } ,[]);
+
+  
+  const validateForm = object({
+    email: string()
+      .required("Email is required")
+      .email("Email must be a valid email"),
+    password: string().required("Password is required"),
+  });
+
+
 
   const handleInputChange = (event) => {
     const target = event.target;
@@ -40,10 +63,21 @@ const LoginForm = (props) => {
     }));
   };
 
-  
-
   const handleSubmit = async (event) => {
     event.preventDefault();
+    try {
+      await validateForm.validate(formData, { abortEarly: false });
+      console.log("Form is valid");
+    } catch (error) {
+      const newErrors = {};
+      console.log(error.inner);
+      error.inner.forEach((err) => {
+        newErrors[err.path] = err.message;
+      });
+      setErrors(newErrors);
+      return;
+    }
+
     try {
       const { email, password } = formData;
       const userDetails = { email, password };
@@ -71,10 +105,9 @@ const LoginForm = (props) => {
         setShowOtpInput(true);
         console.log(email);
         const isOtpSent = await sendOtp(email);
-        if(isOtpSent === false) return alert("OTP not sent Please try again later");
+        if (isOtpSent === false)
+          return alert("OTP not sent Please try again later");
         alert("OTP sent successfully");
-
-
       } else {
         onSubmitFailure("Invalid Username or Password error occurred");
       }
@@ -91,48 +124,67 @@ const LoginForm = (props) => {
   const renderPasswordField = () => {
     const { password } = formData;
     return (
-      <>
+      <div className="flex flex-col justify-center items-start">
         <label className="input-label" htmlFor="password">
           PASSWORD
         </label>
-        <input
-          type="password"
-          id="password"
-          className="password-input-field"
-          value={password}
-          onChange={handleInputChange}
-          placeholder="Password"
-        />
-      </>
+        <div>
+          <input
+            type="password"
+            id="password"
+            className="text-lg font-semibold p-3
+                  border-2 border-gray-300 rounded-lg m-3 w-80
+                  focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            value={password}
+            onChange={handleInputChange}
+            placeholder="Password"
+          />
+          {errors.password && (
+            <p className="text-red-600 font-sans text-base">
+              *{errors.password}
+            </p>
+          )}
+        </div>
+      </div>
     );
   };
 
   const renderUsernameField = () => {
     const { email } = formData;
     return (
-      <>
+      <div className="flex flex-col justify-center items-start">
         <label className="input-label" htmlFor="email">
           EMAIL
         </label>
-        <input
-          type="text"
-          id="email"
-          className="username-input-field"
-          value={email}
-          onChange={handleInputChange}
-          placeholder="Username"
-        />
-      </>
+        <div>
+          <input
+            type="text"
+            id="email"
+            className="text-lg font-semibold p-3
+                  border-2 border-gray-300 rounded-lg m-3 w-80
+                  focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            value={email}
+            onChange={handleInputChange}
+            placeholder="Username"
+          />
+          {errors.email && (
+            <p className="text-red-600 font-sans text-base">*{errors.email}</p>
+          )}
+        </div>
+      </div>
     );
   };
 
   const renderLoginForm = () => {
     const { showSubmitError, errorMsg } = formData;
     return (
-      <form className="form-container" onSubmit={handleSubmit}>
+      <form
+        className="flex flex-col justify-normal items-center"
+        onSubmit={handleSubmit}
+      >
         <h1 className="login-heading">Author Login</h1>
-        <div className="input-container">{renderUsernameField()}</div>
-        <div className="input-container">{renderPasswordField()}</div>
+        <div className="">{renderUsernameField()}</div>
+        <div className="">{renderPasswordField()}</div>
         <button type="submit" className="login-button">
           Login
         </button>
@@ -148,10 +200,15 @@ const LoginForm = (props) => {
   };
 
   const renderOtpForm = () => {
-    return <div className="rounded-lg shadow-lg p-5">
-      <p className="text-center font-semibold text-lg ">Please Enter the OTP sent to <hr/>{formData.email}</p>
-      <OtpInput length={6} onOtpSubmit={onOtpSubmit} />
-    </div>;
+    return (
+      <div className="rounded-lg shadow-lg p-5">
+        <p className="text-center font-semibold text-lg ">
+          Please Enter the OTP sent to <hr />
+          {formData.email}
+        </p>
+        <OtpInput length={6} onOtpSubmit={onOtpSubmit} />
+      </div>
+    );
   };
 
   const onOtpSubmit = async (otp) => {
@@ -162,13 +219,13 @@ const LoginForm = (props) => {
     try {
       const [status, data] = await verifyOtp(email, otp);
       const { message } = data;
-      if(status === false){
+      if (status === false) {
         triggerNotification({
           type: "error",
           message: message,
           duration: 3000,
           animation: "pop",
-        })
+        });
         return;
       }
       triggerNotification({
@@ -176,7 +233,7 @@ const LoginForm = (props) => {
         message: message,
         duration: 3000,
         animation: "pop",
-      })
+      });
       const { history } = props;
       Cookies.set("jwt_token", token, {
         expires: 30,
@@ -191,7 +248,7 @@ const LoginForm = (props) => {
         message: error.message,
         duration: 3000,
         animation: "pop",
-      })
+      });
       console.log("Error while verifying OTP", error.message);
       return;
     }
@@ -203,12 +260,8 @@ const LoginForm = (props) => {
 
   return (
     <div className="login-form-container">
-       {NotificationComponent}
-      <img
-        src="https://res.cloudinary.com/drvnhpatd/image/upload/v1705997469/Ecological_press_conference_member_speaking_on_stage_w7bnit.jpg"
-        className="login-image"
-        alt="website login"
-      />
+      {NotificationComponent}
+      <img src={conferenceImage} className="login-image" alt="website login" />
       {showOtpInput ? renderOtpForm() : renderLoginForm()}
     </div>
   );

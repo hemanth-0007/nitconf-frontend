@@ -184,7 +184,9 @@ const UploadAbstract = () => {
         <input
           type="text"
           id="title"
-          className="username-input-field text-md font-sans"
+          className="text-lg font-semibold p-3
+          border-2 border-gray-300 rounded-lg m-3 w-80
+          focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           value={formData.title}
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -205,7 +207,9 @@ const UploadAbstract = () => {
         <input
           type="text"
           id="description"
-          className="username-input-field"
+          className="text-lg font-semibold p-3
+          border-2 border-gray-300 rounded-lg m-3 w-80
+          focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           value={formData.description}
           onChange={(e) =>
             setFormData((prev) => ({ ...prev, description: e.target.value }))
@@ -227,7 +231,9 @@ const UploadAbstract = () => {
           id="pdf-file"
           name="pdf-file"
           accept=".pdf"
-          className="username-input-field pb-3 pt-2 pl-2"
+          className="text-lg font-semibold p-3
+          border-2 border-gray-300 rounded-lg m-3 w-80
+          focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           onChange={handleFileChange}
           placeholder="Upload PDF"
         />
@@ -245,7 +251,9 @@ const UploadAbstract = () => {
           <input
             type="text"
             id="create-tag"
-            className="username-input-field"
+            className="text-lg font-semibold p-3
+                  border-2 border-gray-300 rounded-lg m-3 w-80
+                  focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             value={formData.newTag}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, newTag: e.target.value }))

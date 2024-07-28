@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import "./index.css";
-import { object, string, array, mixed, ref } from "yup";
+import React, { useState, useEffect } from "react";
+// import "./register.css";
+import { object, string } from "yup";
 
 const Register = (props) => {
   const [formData, setFormData] = useState({
@@ -12,6 +12,14 @@ const Register = (props) => {
     errorMsg: "",
     showSubmitError: false,
   });
+
+  useEffect(() => {
+    const focusInput = () => {
+      const firstNameelement = document.getElementById("firstName");
+      firstNameelement.focus();
+    };
+    focusInput();
+  }, []);
 
   const [errors, setErrors] = useState({});
 
@@ -93,122 +101,187 @@ const Register = (props) => {
   };
 
   return (
-    <div className="border-2
-    flex flex-row justify-between items-center">
-      <form className="form-container" onSubmit={handleSubmit}>
-        <h1 className="register-main-heading">Registration</h1>
-        <div className="input-container">
-          <div>
-            <label className="input-label" htmlFor="firstName">
-             FIRST NAME
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              className="username-input-field"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              placeholder="FIRST NAME"
-            />
-            {errors.firstName && (
-              <p className="text-red-600 font-sans text-base">
-                *{errors.firstName}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="input-label" htmlFor="lastName">
-              LAST NAME
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              className="username-input-field"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              placeholder="LAST NAME"
-            />
-            {errors.lastName && (
-              <p className="text-red-600 font-sans text-base">
-                *{errors.lastName}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col justify-center items-start">
-            <label className="input-label" htmlFor="email">
-              EMAIL
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="username-input-field"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="EMAIL ID"
-            />
-            {errors.email && (
-              <p className="text-red-600 font-sans text-base">*{errors.email}</p>
-            )}
-          </div>
-          <div>
-            <label className="input-label" htmlFor="password">
-              PASSWORD
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="username-input-field"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="PASSWORD"
-            />
-            {errors.password && (
-              <p className="text-red-600 font-sans text-base">
-                *{errors.password}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="input-label" htmlFor="confirmPassword">
-              CONFIRM PASSWORD
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              className="username-input-field"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              placeholder="RE-ENTER YOUR PASSWORD"
-            />
-            {errors.confirmPassword && (
-              <p className="text-red-600 font-sans text-base">
-                *{errors.confirmPassword}
-              </p>
-            )}
-          </div>
-        </div>
-        <button
-          type="submit"
-          className="login-button hover:bg-blue-800 hover:ease-in-out"
+    <div className="border-2 flex flex-col justify-start items-center h-screen">
+      <div className="mt-10">
+        <form
+          className="flex flex-col justify-start items-center"
+          onSubmit={handleSubmit}
         >
-          {" "}
-          REGISTER{" "}
-        </button>
+          <h1 className="text-center font-bold text-2xl">Register</h1>
 
-        {formData.showSubmitError && (
-          <p className="text-red-600 font-sans text-base">*{formData.errorMsg}</p>
-        )}
-        <p className="footer-text">
-          Already Registered ?{" "}
-          <span
-            className="font-semibold text-lg
-          hover:cursor-pointer hover:underline transition-all ease-in-out"
-            onClick={() => props.history.replace("/login")}
+          <div className="">
+            <div
+              className="flex flex-row justify-between items-center
+                          w-full"
+            >
+              <label
+                className="font-semibold text-lg
+                     m-3"
+                htmlFor="firstName"
+              >
+                First Name
+              </label>
+              <div className="flex flex-col">
+                <input
+                  type="text"
+                  id="firstName"
+                  className="text-lg font-semibold p-3
+                  border-2 border-gray-300 rounded-lg m-3 w-80
+                  focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  placeholder="First Name"
+                />
+                {errors.firstName && (
+                  <p className="text-red-600 font-sans text-base">
+                    *{errors.firstName}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div
+              className="flex flex-row justify-between items-center
+                          w-full"
+            >
+              <label
+                className="font-semibold text-lg
+                      m-3"
+                htmlFor="lastName"
+              >
+                Last Name
+              </label>
+              <div>
+                <input
+                  type="text"
+                  id="lastName"
+                  className="text-lg font-semibold p-3
+                border-2 border-gray-300 rounded-lg m-3 w-80
+                focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  placeholder="LAST NAME"
+                />
+                {errors.lastName && (
+                  <p className="text-red-600 font-sans text-base">
+                    *{errors.lastName}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div
+              className="flex flex-row justify-between items-center
+                          w-full"
+            >
+              <label
+                className="font-semibold text-lg
+                      m-3 "
+                htmlFor="email"
+              >
+                EMAIL
+              </label>
+              <div>
+                <input
+                  type="email"
+                  id="email"
+                  className="text-lg font-semibold p-3
+                  border-2 border-gray-300 rounded-lg m-3 w-80
+                  focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="EMAIL ID"
+                />
+                {errors.email && (
+                  <p className="text-red-600 font-sans text-base">
+                    *{errors.email}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div
+              className="flex flex-row justify-between items-center
+                          w-full"
+            >
+              <label
+                className="font-semibold text-lg
+                      m-3 "
+                htmlFor="password"
+              >
+                PASSWORD
+              </label>
+              <div>
+                <input
+                  type="password"
+                  id="password"
+                  className="text-lg font-semibold p-3
+                  border-2 border-gray-300 rounded-lg m-3 w-80
+                  focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="PASSWORD"
+                />
+                {errors.password && (
+                  <p className="text-red-600 font-sans text-base">
+                    *{errors.password}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div
+              className="flex flex-row justify-around items-center
+                          w-full"
+            >
+              <label
+                className="font-semibold text-lg
+                      m-3 "
+                htmlFor="confirmPassword"
+              >
+                CONFIRM PASSWORD
+              </label>
+              <div>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  className="text-lg font-semibold p-3
+                  border-2 border-gray-300 rounded-lg m-3 w-80
+                  focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder="RE-ENTER YOUR PASSWORD"
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-600 font-sans text-base">
+                    *{errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="rounded-full bg-blue-500 text-white font-semibold
+                      p-3 m-3 w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Login
-          </span>
-        </p>
-      </form>
+            {" "}
+            REGISTER{" "}
+          </button>
+
+          {formData.showSubmitError && (
+            <p className="text-red-600 font-sans text-base">
+              *{formData.errorMsg}
+            </p>
+          )}
+          <p className="footer-text">
+            Already Registered ?{" "}
+            <span
+              className="font-semibold text-lg
+          hover:cursor-pointer hover:underline transition-all ease-in-out"
+              onClick={() => props.history.replace("/login")}
+            >
+              Login
+            </span>
+          </p>
+        </form>
+      </div>
     </div>
   );
 };
